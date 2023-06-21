@@ -1,0 +1,58 @@
+volumes:
+  WordPress:
+    name: WordPress
+    driver: local
+    driver_opts:
+      o: bind
+      type: auto
+      device: /Users/ael-bekk/Desktop/inception/srcs/requirements/tools/WordPress
+  DB:
+    name: DB
+    driver: local
+    driver_opts:
+      o: bind
+      type: auto
+      device: /Users/ael-bekk/Desktop/inception/srcs/requirements/tools/DB
+
+networks:
+  inception:
+    name: inception
+    driver: bridge
+
+services:  
+  mariadb:
+    container_name: mariadb
+    build: requirements/mariadb
+    volumes:
+      - DB:/var/lib/mysql/
+    networks:
+      - inception
+    env_file:
+      - .env
+    restart: always
+  
+  wordpress:
+    depends_on:
+      - mariadb
+    container_name: wordpress
+    build: requirements/wordpress
+    volumes:
+      - WordPress:/var/www/html
+    networks:
+      - inception
+    env_file:
+      - .env
+    restart: always
+
+  nginx:
+    depends_on:
+      - wordpress
+    container_name: nginx
+    build: requirements/nginx
+    ports:
+      - "443:443"
+    volumes:
+      - WordPress:/var/www/html
+    networks:
+      - inception
+    restart: always

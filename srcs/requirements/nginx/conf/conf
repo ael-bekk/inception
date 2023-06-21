@@ -1,0 +1,26 @@
+server {
+    listen 443 ssl default_server;
+    server_name nginx;
+    ssl_certificate /etc/ssl/certs/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/nginx-selfsigned.key;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    root /var/www/html;
+    index index.html index.php;
+    server_name _;
+
+    location / {
+        try_files $uri $uri/ /index.php$is_args$args;
+    }
+
+    location ~ \.php$ {
+        #Pass the request to a FastCGI server for processing
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_pass	wordpress:9000;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        #The fastcgi_param directive sets a FastCGI parameter. The SCRIPT_FILENAME parameter specifies the path to the PHP script that should be executed.
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    }
+}
